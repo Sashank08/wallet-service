@@ -101,7 +101,6 @@ class WalletServiceImplTest {
 
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
         when(walletRepository.save(wallet)).thenReturn(wallet);
-        when(transactionRepository.save(any())).thenReturn(null);
 
         Wallet result = walletService.withdraw(walletId, BigDecimal.valueOf(100));
 

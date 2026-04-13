@@ -88,6 +88,8 @@ public class WalletServiceImpl implements WalletService {
     @Transactional
     public Wallet withdraw(UUID walletId, BigDecimal amount) {
 
+        log.info("Withdraw request for walletId={} amount={}", walletId, amount);
+
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidAmountException("Amount must be greater than zero");
         }
@@ -96,12 +98,23 @@ public class WalletServiceImpl implements WalletService {
                 .orElseThrow(() -> new ResourceNotFoundException("Wallet not found"));
 
         if (wallet.getBalance().compareTo(amount) < 0) {
+            log.error("Insufficient balance for walletId={}", walletId);
             throw new InvalidAmountException("Insufficient balance");
         }
 
         wallet.setBalance(wallet.getBalance().subtract(amount));
 
         walletRepository.save(wallet);
+
+        //Transaction record
+        Transaction tx = new Transaction();
+        tx.setWallet(wallet);
+        tx.setAmount(amount);
+        tx.setType(TransactionType.WITHDRAWAL);
+
+        transactionRepository.save(tx);
+
+        log.info("Withdraw successful walletId={} newBalance={}", walletId, wallet.getBalance());
 
         return wallet;
     }
