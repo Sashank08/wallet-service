@@ -2,6 +2,7 @@ package com.rs.payments.wallet.service.impl;
 
 import com.rs.payments.wallet.exception.ResourceNotFoundException;
 import com.rs.payments.wallet.model.User;
+import com.rs.payments.wallet.exception.InvalidAmountException;
 import com.rs.payments.wallet.model.Wallet;
 import com.rs.payments.wallet.repository.TransactionRepository;
 import com.rs.payments.wallet.repository.UserRepository;
@@ -90,19 +91,34 @@ class WalletServiceImplTest {
         assertEquals(BigDecimal.valueOf(100), result.getBalance());
     }
 
-    /*@Test
-    void shouldFailWhenInsufficientBalance() {
+    @Test
+    void shouldWithdrawSuccessfully() {
         UUID walletId = UUID.randomUUID();
 
         Wallet wallet = new Wallet();
         wallet.setId(walletId);
-        wallet.setBalance(BigDecimal.valueOf(50)); // less than withdraw
+        wallet.setBalance(BigDecimal.valueOf(200));
+
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+        when(walletRepository.save(wallet)).thenReturn(wallet);
+        when(transactionRepository.save(any())).thenReturn(null);
+
+        Wallet result = walletService.withdraw(walletId, BigDecimal.valueOf(100));
+
+        assertEquals(BigDecimal.valueOf(100), result.getBalance());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenInsufficientBalance() {
+        UUID walletId = UUID.randomUUID();
+
+        Wallet wallet = new Wallet();
+        wallet.setId(walletId);
+        wallet.setBalance(BigDecimal.valueOf(50));
 
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
 
         assertThrows(InvalidAmountException.class,
                 () -> walletService.withdraw(walletId, BigDecimal.valueOf(100)));
-
-        verify(walletRepository, never()).save(any());
-    }*/
+    }
 }
