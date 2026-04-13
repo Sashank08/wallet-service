@@ -8,8 +8,7 @@ import com.rs.payments.wallet.model.Wallet;
 import com.rs.payments.wallet.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,5 +50,40 @@ class WalletIntegrationTest extends BaseIntegrationTest {
         } catch (org.springframework.web.client.HttpClientErrorException e) {
             assertThat(e.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
+    }
+    @Test
+    void shouldDepositMoney() {
+        //Create user
+        User user = new User();
+        user.setUsername("deposituser");
+        user.setEmail("deposit@example.com");
+        user = userRepository.save(user);
+
+        //Create wallet
+        CreateWalletRequest walletRequest = new CreateWalletRequest();
+        walletRequest.setUserId(user.getId());
+
+        String walletUrl = "http://localhost:" + port + "/wallets";
+        ResponseEntity<Wallet> walletResponse =
+                restTemplate.postForEntity(walletUrl, walletRequest, Wallet.class);
+
+        Wallet wallet = walletResponse.getBody();
+
+        //Deposit
+        String depositUrl = "http://localhost:" + port + "/wallets/" + wallet.getId() + "/deposit";
+
+        String request = "{\"amount\":100}";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> entity = new HttpEntity<>(request, headers);
+
+        ResponseEntity<Wallet> response =
+                restTemplate.postForEntity(depositUrl, entity, Wallet.class);
+
+        // Step 4: Assert
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().getBalance()).isEqualByComparingTo("100");
     }
 }
