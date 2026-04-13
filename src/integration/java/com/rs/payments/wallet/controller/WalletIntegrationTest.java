@@ -86,4 +86,66 @@ class WalletIntegrationTest extends BaseIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().getBalance()).isEqualByComparingTo("100");
     }
+
+    @Test
+    void shouldWithdrawSuccessfully() {
+        // Create user
+        User user = new User();
+        user.setUsername("withdrawuser");
+        user.setEmail("withdraw@example.com");
+        user = userRepository.save(user);
+
+        // Create wallet
+        CreateWalletRequest walletRequest = new CreateWalletRequest();
+        walletRequest.setUserId(user.getId());
+
+        String walletUrl = "http://localhost:" + port + "/wallets";
+        Wallet wallet = restTemplate.postForEntity(walletUrl, walletRequest, Wallet.class).getBody();
+
+        // Deposit first
+        String depositUrl = "http://localhost:" + port + "/wallets/" + wallet.getId() + "/deposit";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        restTemplate.postForEntity(depositUrl,
+                new HttpEntity<>("{\"amount\":200}", headers),
+                Wallet.class);
+
+        // Withdraw
+        String withdrawUrl = "http://localhost:" + port + "/wallets/" + wallet.getId() + "/withdraw";
+
+        ResponseEntity<Wallet> response =
+                restTemplate.postForEntity(withdrawUrl,
+                        new HttpEntity<>("{\"amount\":100}", headers),
+                        Wallet.class);
+
+        // Assert
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().getBalance()).isEqualByComparingTo("100");
+    }
+
+    @Test
+    void shouldFailWhenInsufficientBalance() {
+        User user = new User();
+        user.setUsername("failuser");
+        user.setEmail("fail@example.com");
+        user = userRepository.save(user);
+
+        CreateWalletRequest request = new CreateWalletRequest();
+        request.setUserId(user.getId());
+
+        String walletUrl = "http://localhost:" + port + "/wallets";
+        Wallet wallet = restTemplate.postForEntity(walletUrl, request, Wallet.class).getBody();
+
+        String withdrawUrl = "http://localhost:" + port + "/wallets/" + wallet.getId() + "/withdraw";
+
+        try {
+            restTemplate.postForEntity(withdrawUrl,
+                    new HttpEntity<>("{\"amount\":100}", new HttpHeaders()),
+                    Wallet.class);
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            assertThat(e.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        }
+    }
 }
