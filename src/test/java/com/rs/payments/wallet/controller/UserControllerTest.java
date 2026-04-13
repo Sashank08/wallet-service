@@ -1,6 +1,5 @@
 package com.rs.payments.wallet.controller;
 
-import java.util.UUID;
 import com.rs.payments.wallet.dto.CreateUserRequest;
 import com.rs.payments.wallet.model.User;
 import com.rs.payments.wallet.service.UserService;
@@ -12,9 +11,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {

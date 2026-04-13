@@ -1,6 +1,5 @@
 package com.rs.payments.wallet.service.impl;
 
-import java.util.UUID;
 import com.rs.payments.wallet.model.User;
 import com.rs.payments.wallet.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -10,8 +9,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {

@@ -1,6 +1,5 @@
 package com.rs.payments.wallet.controller;
 
-import java.util.UUID;
 import com.rs.payments.wallet.BaseIntegrationTest;
 import com.rs.payments.wallet.dto.CreateWalletRequest;
 import com.rs.payments.wallet.model.User;
@@ -8,8 +7,14 @@ import com.rs.payments.wallet.model.Wallet;
 import com.rs.payments.wallet.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

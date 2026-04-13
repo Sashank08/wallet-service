@@ -18,7 +18,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.any;
 
 @ExtendWith(MockitoExtension.class)
 class WalletServiceImplTest {
@@ -82,4 +86,20 @@ class WalletServiceImplTest {
 
         assertEquals(BigDecimal.valueOf(100), result.getBalance());
     }
+
+    /*@Test
+    void shouldFailWhenInsufficientBalance() {
+        UUID walletId = UUID.randomUUID();
+
+        Wallet wallet = new Wallet();
+        wallet.setId(walletId);
+        wallet.setBalance(BigDecimal.valueOf(50)); // less than withdraw
+
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+
+        assertThrows(InvalidAmountException.class,
+                () -> walletService.withdraw(walletId, BigDecimal.valueOf(100)));
+
+        verify(walletRepository, never()).save(any());
+    }*/
 }
