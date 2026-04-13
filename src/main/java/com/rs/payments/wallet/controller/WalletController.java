@@ -70,6 +70,11 @@ public class WalletController {
                                            @RequestBody Map<String, BigDecimal> request) {
 
         BigDecimal amount = request.get("amount");
+
+        if (amount == null) {
+            throw new InvalidAmountException("Amount cannot be null");
+        }
+
         Wallet wallet = walletService.withdraw(id, amount);
 
         return ResponseEntity.ok(wallet);
