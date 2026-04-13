@@ -2,8 +2,11 @@ package com.rs.payments.wallet.service.impl;
 
 import com.rs.payments.wallet.exception.InvalidAmountException;
 import com.rs.payments.wallet.exception.ResourceNotFoundException;
+import com.rs.payments.wallet.model.Transaction;
+import com.rs.payments.wallet.model.TransactionType;
 import com.rs.payments.wallet.model.User;
 import com.rs.payments.wallet.model.Wallet;
+import com.rs.payments.wallet.repository.TransactionRepository;
 import com.rs.payments.wallet.repository.UserRepository;
 import com.rs.payments.wallet.repository.WalletRepository;
 import com.rs.payments.wallet.service.WalletService;
@@ -21,18 +24,22 @@ public class WalletServiceImpl implements WalletService {
 
     private final UserRepository userRepository;
     private final WalletRepository walletRepository;
+    private final TransactionRepository  transactionRepository;
     private static final Logger log = LoggerFactory.getLogger(WalletServiceImpl.class);
 
-    public WalletServiceImpl(UserRepository userRepository, WalletRepository walletRepository) {
+    public WalletServiceImpl(UserRepository userRepository, WalletRepository walletRepository, TransactionRepository transactionRepository) {
         this.userRepository = userRepository;
         this.walletRepository = walletRepository;
+        this.transactionRepository = transactionRepository;
     }
 
     @Override
     public Wallet createWalletForUser(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
+        if (user.getWallet() != null) {
+            throw new IllegalStateException("Wallet already exists for user");
+        }
         Wallet wallet = new Wallet();
         wallet.setBalance(BigDecimal.ZERO);
         wallet.setUser(user);
@@ -46,7 +53,7 @@ public class WalletServiceImpl implements WalletService {
     @Transactional
     public Wallet deposit(UUID walletId, BigDecimal amount) {
 
-        log.info("Deposit request received for walletId={} amount={}");
+        log.info("Deposit request received for walletId={} amount={}",walletId,amount);
 
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
 
@@ -65,8 +72,14 @@ public class WalletServiceImpl implements WalletService {
 
         Wallet savedWallet = walletRepository.save(wallet);
 
+        log.info("Deposit successful for walletId={} newBalance={}",walletId,updatedBalance);
 
-        log.info("Deposit successful for walletId={} newBalance={}");
+        Transaction tx = new Transaction();
+        tx.setWallet(wallet);
+        tx.setAmount(amount);
+        tx.setType(TransactionType.DEPOSIT);
+
+        transactionRepository.save(tx);
 
         return savedWallet;
     }

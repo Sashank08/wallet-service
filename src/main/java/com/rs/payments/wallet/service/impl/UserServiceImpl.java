@@ -16,6 +16,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
+
+        if (userRepository.existsByUsername(user.getUsername()) ||
+                userRepository.existsByEmail(user.getEmail())) {
+
+            throw new IllegalStateException("User already exists");
+        }
+
         return userRepository.save(user);
     }
 }
