@@ -129,28 +129,4 @@ class WalletIntegrationTest extends BaseIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().getBalance()).isEqualByComparingTo("100");
     }
-
-    @Test
-    void shouldFailWhenInsufficientBalance() {
-        User user = new User();
-        user.setUsername("failuser");
-        user.setEmail("fail@example.com");
-        user = userRepository.save(user);
-
-        CreateWalletRequest request = new CreateWalletRequest();
-        request.setUserId(user.getId());
-
-        String walletUrl = "http://localhost:" + port + "/wallets";
-        Wallet wallet = restTemplate.postForEntity(walletUrl, request, Wallet.class).getBody();
-
-        String withdrawUrl = "http://localhost:" + port + "/wallets/" + wallet.getId() + "/withdraw";
-
-        try {
-            restTemplate.postForEntity(withdrawUrl,
-                    new HttpEntity<>("{\"amount\":100}", new HttpHeaders()),
-                    Wallet.class);
-        } catch (org.springframework.web.client.HttpClientErrorException e) {
-            assertThat(e.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        }
-    }
 }

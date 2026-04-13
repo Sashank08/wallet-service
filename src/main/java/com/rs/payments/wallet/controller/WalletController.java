@@ -2,6 +2,7 @@ package com.rs.payments.wallet.controller;
 
 import com.rs.payments.wallet.dto.CreateWalletRequest;
 import com.rs.payments.wallet.model.Wallet;
+import com.rs.payments.wallet.exception.InvalidAmountException;
 import com.rs.payments.wallet.service.WalletService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -60,6 +61,16 @@ public class WalletController {
         BigDecimal amount = request.get("amount");
 
         Wallet wallet = walletService.deposit(id, amount);
+
+        return ResponseEntity.ok(wallet);
+    }
+
+    @PostMapping("/{id}/withdraw")
+    public ResponseEntity<Wallet> withdraw(@PathVariable UUID id,
+                                           @RequestBody Map<String, BigDecimal> request) {
+
+        BigDecimal amount = request.get("amount");
+        Wallet wallet = walletService.withdraw(id, amount);
 
         return ResponseEntity.ok(wallet);
     }
