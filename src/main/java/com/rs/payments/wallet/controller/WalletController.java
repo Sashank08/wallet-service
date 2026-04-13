@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,7 +46,7 @@ public class WalletController {
     @PostMapping
     public ResponseEntity<Wallet> createWallet(@Valid @RequestBody CreateWalletRequest request) {
         Wallet wallet = walletService.createWalletForUser(request.getUserId());
-        return ResponseEntity.ok(wallet);
+        return ResponseEntity.status(HttpStatus.CREATED).body(wallet);
     }
 
     @PostMapping("/{id}/deposit")
