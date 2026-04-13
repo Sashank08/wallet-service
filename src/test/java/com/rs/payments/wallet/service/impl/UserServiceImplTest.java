@@ -10,8 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,5 +42,17 @@ class UserServiceImplTest {
         assertEquals(id, result.getId());
         assertEquals("testuser", result.getUsername());
         verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUserAlreadyExists() {
+        User user = new User();
+        user.setUsername("test");
+        user.setEmail("test@mail.com");
+
+        when(userRepository.existsByUsername("test")).thenReturn(true);
+
+        assertThrows(IllegalStateException.class,
+                () -> userService.createUser(user));
     }
 }
