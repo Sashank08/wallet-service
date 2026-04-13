@@ -104,7 +104,7 @@ public class WalletServiceImpl implements WalletService {
 
         wallet.setBalance(wallet.getBalance().subtract(amount));
 
-        walletRepository.save(wallet);
+        Wallet savedWallet = walletRepository.save(wallet);
 
         //Transaction record
         Transaction tx = new Transaction();
@@ -116,6 +116,6 @@ public class WalletServiceImpl implements WalletService {
 
         log.info("Withdraw successful walletId={} newBalance={}", walletId, wallet.getBalance());
 
-        return wallet;
+        return savedWallet;
     }
 }
