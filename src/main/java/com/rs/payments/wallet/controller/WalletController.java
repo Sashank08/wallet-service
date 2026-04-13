@@ -10,10 +10,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/wallets")
@@ -44,6 +45,17 @@ public class WalletController {
     @PostMapping
     public ResponseEntity<Wallet> createWallet(@Valid @RequestBody CreateWalletRequest request) {
         Wallet wallet = walletService.createWalletForUser(request.getUserId());
+        return ResponseEntity.ok(wallet);
+    }
+
+    @PostMapping("/{id}/deposit")
+    public ResponseEntity<Wallet> deposit(@PathVariable UUID id,
+                                          @RequestBody Map<String, BigDecimal> request) {
+
+        BigDecimal amount = request.get("amount");
+
+        Wallet wallet = walletService.deposit(id, amount);
+
         return ResponseEntity.ok(wallet);
     }
 }
