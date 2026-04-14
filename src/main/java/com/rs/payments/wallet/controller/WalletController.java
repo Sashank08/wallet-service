@@ -1,6 +1,8 @@
 package com.rs.payments.wallet.controller;
 
 import com.rs.payments.wallet.dto.CreateWalletRequest;
+import com.rs.payments.wallet.dto.TransferRequest;
+import com.rs.payments.wallet.dto.TransferResponse;
 import com.rs.payments.wallet.model.Wallet;
 import com.rs.payments.wallet.exception.InvalidAmountException;
 import com.rs.payments.wallet.service.WalletService;
@@ -79,4 +81,22 @@ public class WalletController {
 
         return ResponseEntity.ok(wallet);
     }
+
+    @PostMapping("/transfers")
+    public ResponseEntity<TransferResponse> transfer(@RequestBody TransferRequest request) {
+
+        if (request.getAmount() == null) {
+            throw new InvalidAmountException("Amount cannot be null");
+        }
+
+        TransferResponse response = walletService.transfer(
+                request.getFromWalletId(),
+                request.getToWalletId(),
+                request.getAmount()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+
 }

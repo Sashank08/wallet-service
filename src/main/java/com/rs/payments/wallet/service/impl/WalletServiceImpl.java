@@ -1,5 +1,6 @@
 package com.rs.payments.wallet.service.impl;
 
+import com.rs.payments.wallet.dto.TransferResponse;
 import com.rs.payments.wallet.exception.InvalidAmountException;
 import com.rs.payments.wallet.exception.ResourceNotFoundException;
 import com.rs.payments.wallet.model.Transaction;
@@ -10,6 +11,8 @@ import com.rs.payments.wallet.repository.TransactionRepository;
 import com.rs.payments.wallet.repository.UserRepository;
 import com.rs.payments.wallet.repository.WalletRepository;
 import com.rs.payments.wallet.service.WalletService;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.slf4j.LoggerFactory;
@@ -77,6 +80,7 @@ public class WalletServiceImpl implements WalletService {
         Transaction tx = new Transaction();
         tx.setWallet(wallet);
         tx.setAmount(amount);
+        tx.setTimestamp(LocalDateTime.now());
         tx.setType(TransactionType.DEPOSIT);
 
         transactionRepository.save(tx);
@@ -110,6 +114,7 @@ public class WalletServiceImpl implements WalletService {
         Transaction tx = new Transaction();
         tx.setWallet(wallet);
         tx.setAmount(amount);
+        tx.setTimestamp(LocalDateTime.now());
         tx.setType(TransactionType.WITHDRAWAL);
 
         transactionRepository.save(tx);
@@ -117,5 +122,68 @@ public class WalletServiceImpl implements WalletService {
         log.info("Withdraw successful walletId={} newBalance={}", walletId, wallet.getBalance());
 
         return savedWallet;
+
+
+    }
+
+    @Override
+    @Transactional
+    public TransferResponse transfer(UUID fromWalletId, UUID toWalletId, BigDecimal amount) {
+
+        log.info("Transfer request from={} to={} amount={}", fromWalletId, toWalletId, amount);
+
+        // 1. Validate amount
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidAmountException("Amount must be greater than zero");
+        }
+
+        // 2. Prevent self-transfer (edge case)
+        if (fromWalletId.equals(toWalletId)) {
+            throw new InvalidAmountException("Cannot transfer to the same wallet");
+        }
+
+        // 3. Fetch wallets
+        Wallet fromWallet = walletRepository.findById(fromWalletId)
+                .orElseThrow(() -> new ResourceNotFoundException("From wallet not found"));
+
+        Wallet toWallet = walletRepository.findById(toWalletId)
+                .orElseThrow(() -> new ResourceNotFoundException("To wallet not found"));
+
+        // 4. Check sufficient balance
+        if (fromWallet.getBalance().compareTo(amount) < 0) {
+            log.error("Insufficient balance for walletId={}", fromWalletId);
+            throw new InvalidAmountException("Insufficient balance");
+        }
+
+        // 5. Debit sender
+        fromWallet.setBalance(fromWallet.getBalance().subtract(amount));
+
+        // 6. Credit receiver
+        toWallet.setBalance(toWallet.getBalance().add(amount));
+
+        // 7. Save both wallets
+        Wallet updatedFromWallet = walletRepository.save(fromWallet);
+        Wallet updatedToWallet = walletRepository.save(toWallet);
+
+        // 8. Create transaction OUT
+        Transaction txOut = new Transaction();
+        txOut.setWallet(updatedFromWallet);
+        txOut.setAmount(amount);
+        txOut.setTimestamp(LocalDateTime.now());
+        txOut.setType(TransactionType.TRANSFER_OUT);
+        transactionRepository.save(txOut);
+
+        // 9. Create transaction IN
+        Transaction txIn = new Transaction();
+        txIn.setWallet(updatedToWallet);
+        txIn.setAmount(amount);
+        txIn.setTimestamp(LocalDateTime.now());
+        txIn.setType(TransactionType.TRANSFER_IN);
+        transactionRepository.save(txIn);
+
+        log.info("Transfer successful from={} to={} amount={}", fromWalletId, toWalletId, amount);
+
+        // 10. Return response DTO
+        return new TransferResponse(fromWalletId, toWalletId, amount);
     }
 }
