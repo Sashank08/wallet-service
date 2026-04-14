@@ -120,4 +120,26 @@ class WalletServiceImplTest {
         assertThrows(InvalidAmountException.class,
                 () -> walletService.withdraw(walletId, BigDecimal.valueOf(100)));
     }
+
+    @Test
+    void shouldTransferSuccessfully() {
+        UUID fromId = UUID.randomUUID();
+        UUID toId = UUID.randomUUID();
+
+        Wallet fromWallet = new Wallet();
+        fromWallet.setId(fromId);
+        fromWallet.setBalance(BigDecimal.valueOf(200));
+
+        Wallet toWallet = new Wallet();
+        toWallet.setId(toId);
+        toWallet.setBalance(BigDecimal.ZERO);
+
+        when(walletRepository.findById(fromId)).thenReturn(Optional.of(fromWallet));
+        when(walletRepository.findById(toId)).thenReturn(Optional.of(toWallet));
+
+        walletService.transfer(fromId, toId, BigDecimal.valueOf(100));
+
+        assertEquals(BigDecimal.valueOf(100), fromWallet.getBalance());
+        assertEquals(BigDecimal.valueOf(100), toWallet.getBalance());
+    }
 }
