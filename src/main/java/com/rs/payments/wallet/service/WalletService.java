@@ -11,5 +11,5 @@ public interface WalletService {
     Wallet deposit(UUID walletId, BigDecimal amount);
     Wallet withdraw(UUID walletId, BigDecimal amount);
     TransferResponse transfer(UUID fromWalletId, UUID toWalletId, BigDecimal amount);
-
+    BigDecimal getBalance(UUID walletId);
 }

@@ -101,6 +101,9 @@ public class WalletController {
 
     @GetMapping("/{id}/balance")
     public ResponseEntity<BigDecimal> getBalance(@PathVariable UUID id) {
-        return ResponseEntity.ok(BigDecimal.valueOf(700));
+
+        BigDecimal balance = walletService.getBalance(id);
+
+        return ResponseEntity.ok(balance);
     }
 }

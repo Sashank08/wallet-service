@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -237,10 +238,10 @@ class WalletIntegrationTest extends BaseIntegrationTest {
         // Get balance
         String balanceUrl = "http://localhost:" + port + "/wallets/" + wallet.getId() + "/balance";
 
-        ResponseEntity<String> response =
-                restTemplate.getForEntity(balanceUrl, String.class);
-
+        ResponseEntity<BigDecimal> response =
+                restTemplate.getForEntity(balanceUrl, BigDecimal.class);
+        System.out.println("Balance = " + response.getBody());
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isEqualTo("150");
+        assertThat(response.getBody()).isEqualByComparingTo("150");
     }
 }

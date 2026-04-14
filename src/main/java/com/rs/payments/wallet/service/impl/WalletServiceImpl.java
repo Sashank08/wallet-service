@@ -186,4 +186,13 @@ public class WalletServiceImpl implements WalletService {
         // 10. Return response DTO
         return new TransferResponse(fromWalletId, toWalletId, amount);
     }
+
+    @Override
+    public BigDecimal getBalance(UUID walletId) {
+        log.info("Fetching balance for walletId={}", walletId);
+        Wallet wallet = walletRepository.findById(walletId)
+                .orElseThrow(() -> new ResourceNotFoundException("Wallet not found"));
+
+        return wallet.getBalance();
+    }
 }
