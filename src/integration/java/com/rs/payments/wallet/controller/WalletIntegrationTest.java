@@ -2,6 +2,7 @@ package com.rs.payments.wallet.controller;
 
 import com.rs.payments.wallet.BaseIntegrationTest;
 import com.rs.payments.wallet.dto.CreateWalletRequest;
+import com.rs.payments.wallet.dto.TransferResponse;
 import com.rs.payments.wallet.model.User;
 import com.rs.payments.wallet.model.Wallet;
 import com.rs.payments.wallet.repository.UserRepository;
@@ -177,7 +178,7 @@ class WalletIntegrationTest extends BaseIntegrationTest {
                 Wallet.class).getBody();
 
         CreateWalletRequest req2 = new CreateWalletRequest();
-        req1.setUserId(u1.getId());
+        req2.setUserId(u2.getId());
 
         Wallet w2 = restTemplate.postForEntity(
                 "http://localhost:" + port + "/wallets",
@@ -195,15 +196,15 @@ class WalletIntegrationTest extends BaseIntegrationTest {
         );
 
         // transfer
-        String url = "http://localhost:" + port + "/transfers";
+        String url = "http://localhost:" + port + "/wallets/transfers";
 
         String body = String.format(
                 "{\"fromWalletId\":\"%s\",\"toWalletId\":\"%s\",\"amount\":100}",
                 w1.getId(), w2.getId()
         );
 
-        ResponseEntity<Wallet> response =
-                restTemplate.postForEntity(url, new HttpEntity<>(body, headers), Wallet.class);
+        ResponseEntity<TransferResponse> response =
+                restTemplate.postForEntity(url, new HttpEntity<>(body, headers), TransferResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
