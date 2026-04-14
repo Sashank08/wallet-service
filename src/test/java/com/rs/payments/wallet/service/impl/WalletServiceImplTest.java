@@ -142,4 +142,19 @@ class WalletServiceImplTest {
         assertEquals(BigDecimal.valueOf(100), fromWallet.getBalance());
         assertEquals(BigDecimal.valueOf(100), toWallet.getBalance());
     }
+
+    @Test
+    void shouldReturnWalletBalance() {
+        UUID walletId = UUID.randomUUID();
+
+        Wallet wallet = new Wallet();
+        wallet.setId(walletId);
+        wallet.setBalance(BigDecimal.valueOf(150));
+
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+
+        BigDecimal result = walletService.getBalance(walletId);
+
+        assertEquals(BigDecimal.valueOf(150), result);
+    }
 }
