@@ -191,8 +191,11 @@ public class WalletServiceImpl implements WalletService {
     public BigDecimal getBalance(UUID walletId) {
         log.info("Fetching balance for walletId={}", walletId);
         Wallet wallet = walletRepository.findById(walletId)
-                .orElseThrow(() -> new ResourceNotFoundException("Wallet not found"));
-
+                .orElseThrow(() -> {
+                    log.error("Wallet not found with id={}", walletId);
+                    return new ResourceNotFoundException("Wallet not found");
+                        });
+        
         return wallet.getBalance();
     }
 }
