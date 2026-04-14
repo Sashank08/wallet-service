@@ -208,4 +208,39 @@ class WalletIntegrationTest extends BaseIntegrationTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
+
+    @Test
+    void shouldGetWalletBalance() {
+        // Create user
+        User user = new User();
+        user.setUsername("balanceuser");
+        user.setEmail("balance@example.com");
+        user = userRepository.save(user);
+
+        // Create wallet
+        CreateWalletRequest request = new CreateWalletRequest();
+        request.setUserId(user.getId());
+
+        String walletUrl = "http://localhost:" + port + "/wallets";
+        Wallet wallet = restTemplate.postForEntity(walletUrl, request, Wallet.class).getBody();
+
+        // Deposit money
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        restTemplate.postForEntity(
+                "http://localhost:" + port + "/wallets/" + wallet.getId() + "/deposit",
+                new HttpEntity<>("{\"amount\":150}", headers),
+                Wallet.class
+        );
+
+        // Get balance
+        String balanceUrl = "http://localhost:" + port + "/wallets/" + wallet.getId() + "/balance";
+
+        ResponseEntity<String> response =
+                restTemplate.getForEntity(balanceUrl, String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo("150");
+    }
 }
