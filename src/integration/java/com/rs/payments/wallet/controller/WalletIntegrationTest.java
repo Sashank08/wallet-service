@@ -161,4 +161,50 @@ class WalletIntegrationTest extends BaseIntegrationTest {
             assertThat(e.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         }
     }
+
+    @Test
+    void shouldTransferSuccessfully() {
+        // create users
+        User u1 = userRepository.save(new User(null, "u1", "u1@mail.com", null));
+        User u2 = userRepository.save(new User(null, "u2", "u2@mail.com", null));
+
+        // create wallets
+        CreateWalletRequest req1 = new CreateWalletRequest();
+        req1.setUserId(u1.getId());
+        Wallet w1 = restTemplate.postForEntity(
+                "http://localhost:" + port + "/wallets",
+                req1,
+                Wallet.class).getBody();
+
+        CreateWalletRequest req2 = new CreateWalletRequest();
+        req1.setUserId(u1.getId());
+
+        Wallet w2 = restTemplate.postForEntity(
+                "http://localhost:" + port + "/wallets",
+                req2,
+                Wallet.class).getBody();
+
+        // deposit money
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        restTemplate.postForEntity(
+                "http://localhost:" + port + "/wallets/" + w1.getId() + "/deposit",
+                new HttpEntity<>("{\"amount\":200}", headers),
+                Wallet.class
+        );
+
+        // transfer
+        String url = "http://localhost:" + port + "/transfers";
+
+        String body = String.format(
+                "{\"fromWalletId\":\"%s\",\"toWalletId\":\"%s\",\"amount\":100}",
+                w1.getId(), w2.getId()
+        );
+
+        ResponseEntity<Wallet> response =
+                restTemplate.postForEntity(url, new HttpEntity<>(body, headers), Wallet.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
 }
